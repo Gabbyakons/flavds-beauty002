@@ -71,8 +71,8 @@ export default function Dashboard({ initial }) {
         const fd = new FormData();
         fd.append("file", await compress(file), "photo.jpg");
         const up = await fetch("/api/upload", { method: "POST", body: fd });
-        const data = await up.json();
-        if (!up.ok) throw new Error(data.error || "Image upload failed");
+        const data = await up.json().catch(() => ({}));
+        if (!up.ok) throw new Error(data.error || `Image upload failed (error ${up.status})`);
         image = data.url;
       }
       const r = await fetch(editing ? `/api/products/${editing}` : "/api/products", {
@@ -80,8 +80,8 @@ export default function Dashboard({ initial }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, image, price: Number(form.price) }),
       });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || "Could not save");
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || `Could not save (error ${r.status})`);
       setMsg({ type: "ok", text: editing ? "Product updated." : "Product added." });
       reset();
       await reload();
